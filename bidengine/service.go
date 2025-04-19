@@ -4,7 +4,9 @@ import (
 	"context"
 	"errors"
 
-	sclient "github.com/akash-network/akash-api/go/node/client/v1beta2"
+	// sclient "github.com/akash-network/akash-api/go/node/client/v1beta2"
+	// Import the middleware package for the ChainClient interface
+	mware "github.com/Mohammadakhavan75/provider/middleware"
 	"github.com/boz/go-lifecycle"
 	sdkquery "github.com/cosmos/cosmos-sdk/types/query"
 	"github.com/prometheus/client_golang/prometheus"
@@ -53,7 +55,8 @@ type Service interface {
 // NewService creates new service instance and returns error in case of failure
 func NewService(
 	pctx context.Context,
-	aqc sclient.QueryClient,
+	// aqc sclient.QueryClient,
+	chainClient mware.middleware.ChainClient,
 	session session.Session,
 	cluster cluster.Cluster,
 	bus pubsub.Bus,
@@ -155,7 +158,8 @@ func (s *service) updateOrderManagerGauge() {
 	orderManagerGauge.Set(float64(len(s.orders)))
 }
 
-func (s *service) ordersFetcher(ctx context.Context, aqc sclient.QueryClient) error {
+// func (s *service) ordersFetcher(ctx context.Context, aqc sclient.QueryClient) error {
+func (s *service) ordersFetcher(ctx context.Context, chainClient sclient.QueryClient) error {
 	var nextKey []byte
 
 	limit := cap(s.ordersch)
@@ -167,7 +171,8 @@ loop:
 			Limit: uint64(limit),
 		}
 
-		resp, err := aqc.Orders(ctx, &mtypes.QueryOrdersRequest{
+		// resp, err := aqc.Orders(ctx, &mtypes.QueryOrdersRequest{
+		resp, err := chainClient.GetOrders(ctx, &mtypes.QueryOrdersRequest{
 			Filters: mtypes.OrderFilters{
 				State: mtypes.OrderOpen.String(),
 			},
