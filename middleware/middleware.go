@@ -37,11 +37,11 @@ func NewChainClient(ctx context.Context, clientCtx sdkclient.Context, log zerolo
 // Placeholder implementations for ChainClient methods
 // We will fill these in subsequent steps.
 
-func (c *chainClient) GetOrders(ctx context.Context, filters markettypes.OrderFilters) ([]markettypes.Order, error) {
-	// Implementation to query the market module will go here
-	panic("implement me")
+func (c *chainClient) GetOrders(ctx context.Context, req *markettypes.QueryOrdersRequest) (*markettypes.QueryOrdersResponse, error) {
+   q := markettypes.NewQueryClient(c.clientCtx)
+   return q.Orders(ctx, req)
 }
-
+	
 func (c *chainClient) SubmitBid(ctx context.Context, orderID markettypes.OrderID, price sdktypes.DecCoin, deposit sdktypes.Coin) error {
 	// Implementation to build and broadcast MsgCreateBid will go here
 	panic("implement me")

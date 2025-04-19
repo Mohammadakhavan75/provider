@@ -14,7 +14,8 @@ import (
 // to interact with the blockchain data, abstracting away the direct client context usage.
 type ChainClient interface {
 	// GetOrders fetches open orders matching specific filters from the market module.
-	GetOrders(ctx context.Context, filters markettypes.OrderFilters) ([]markettypes.Order, error)
+	// GetOrders(ctx context.Context, filters markettypes.OrderFilters) ([]markettypes.Order, error)
+	GetOrders(ctx context.Context, req *markettypes.QueryOrdersRequest) (*markettypes.QueryOrdersResponse, error)
 
 	// SubmitBid creates and broadcasts a MsgCreateBid transaction for a given order.
 	// The provider address is implicitly determined from the client context/keyring used

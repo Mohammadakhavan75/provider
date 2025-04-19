@@ -56,7 +56,7 @@ type Service interface {
 func NewService(
 	pctx context.Context,
 	// aqc sclient.QueryClient,
-	chainClient mware.middleware.ChainClient,
+	chainClient mware.ChainClient,
 	session session.Session,
 	cluster cluster.Cluster,
 	bus pubsub.Bus,
@@ -78,6 +78,7 @@ func NewService(
 	s := &service{
 		session:  session,
 		cluster:  cluster,
+		chainClient: chainClient,
 		bus:      bus,
 		sub:      sub,
 		statusch: make(chan chan<- *Status),
@@ -91,6 +92,7 @@ func NewService(
 	}
 
 	go s.lc.WatchContext(pctx)
+	go s.ordersFetcher(pctx) // kick off initial paginated pull
 	go s.run(pctx)
 
 	return s, nil
@@ -100,6 +102,8 @@ type service struct {
 	session session.Session
 	cluster cluster.Cluster
 	cfg     Config
+
+	chainClient mware.ChainClient
 
 	bus pubsub.Bus
 	sub pubsub.Subscriber
@@ -159,7 +163,7 @@ func (s *service) updateOrderManagerGauge() {
 }
 
 // func (s *service) ordersFetcher(ctx context.Context, aqc sclient.QueryClient) error {
-func (s *service) ordersFetcher(ctx context.Context, chainClient sclient.QueryClient) error {
+func (s *service) ordersFetcher(ctx context.Context) error {
 	var nextKey []byte
 
 	limit := cap(s.ordersch)
@@ -172,7 +176,7 @@ loop:
 		}
 
 		// resp, err := aqc.Orders(ctx, &mtypes.QueryOrdersRequest{
-		resp, err := chainClient.GetOrders(ctx, &mtypes.QueryOrdersRequest{
+		resp, err := s.chainClient.GetOrders(ctx, &mtypes.QueryOrdersRequest{
 			Filters: mtypes.OrderFilters{
 				State: mtypes.OrderOpen.String(),
 			},
